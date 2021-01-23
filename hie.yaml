@@ -1,0 +1,14 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "hacca:lib"
+
+    - path: "./app/Main.hs"
+      component: "hacca:exe:hacca-exe"
+
+    - path: "./app/Paths_hacca.hs"
+      component: "hacca:exe:hacca-exe"
+
+    - path: "./test"
+      component: "hacca:test:hacca-test"
+      stackYaml: "./stack-hls.yaml"
