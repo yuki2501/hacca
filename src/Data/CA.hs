@@ -1,4 +1,4 @@
-module CA(CA) where
+module Data.CA(CA) where
 
 class CA a where
   getUpdateLine :: a -> f -- 更新するべき列を取得(DIM1ならラスト1列、DIM2なら全部)
