@@ -7,6 +7,6 @@ class CA a where
   applyRule :: a -> [Bool] -> Bool -- ルールの適用
   neighbors :: a -> Int -> [Int] -- 近傍の取得
   fieldContentUpdate :: a -> a -- フィールドを更新し、更新されたフィールドを持つaを返す
-  fieldContentUpdate ca = reformField ca (updateAndAddLine ca (getUpdateLine ca))
+  fieldContentUpdate ca = incrementGeneration $ reformField ca (updateAndAddLine ca (getUpdateLine ca))
 
   incrementGeneration :: a -> a
