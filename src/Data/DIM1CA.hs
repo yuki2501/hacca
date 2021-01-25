@@ -5,8 +5,6 @@ import qualified Data.Vector.Unboxed as V
 import Control.Monad.ST
 type Field = Rp.Array Rp.U Rp.DIM2 Bool
 data Dim1CA = Dim1CA{field :: Field, wolframCode::Word8,generation :: Int}
-getUpdateLine :: Dim1CA -> Int-- 更新するべき列を取得(DIM1ならラスト1列、DIM2なら全部)
-getUpdateLine ca =  ((\(Rp.Z Rp.:.i Rp.:._) -> i-1)$Rp.extent$field ca)
 applyRule :: Dim1CA -> [Bool] -> Bool -- ルールの適用
 applyRule ca bools = let nowPattern = bools2Int $ bools
                          rules = V.fromList $ int2Rule $ wolframCode ca
@@ -19,10 +17,10 @@ applyRule ca bools = let nowPattern = bools2Int $ bools
     binary2Int :: [Int] -> Int
     binary2Int [] = 0
     binary2Int (x:xs) = if x == 1 then 2 ^ (length (x:xs) - 1) + binary2Int xs else binary2Int xs
-updateAndAddLine :: Dim1CA -> Int ->  Dim1CA-- (applyRuleして更新した列を全体に加える,DIM2ならidでいいですが)
-updateAndAddLine ca line = runST $ do
-  updatedline <- let newline= (runST $ Rp.computeUnboxedP $ Rp.slice (field ca) (Rp.Z Rp.:.line Rp.:.Rp.All))
-                  in Rp.computeUnboxedP $ Rp.traverse (runST $ Rp.computeUnboxedP $ Rp.slice (field ca) (Rp.Z Rp.:.line Rp.:.Rp.All)) id (cellUpdate (generation ca) newline)
+updateAndAddLines :: Dim1CA -> Dim1CA-- (applyRuleして更新した列を全体に加える,DIM2ならidでいいですが)
+updateAndAddLines ca  = runST $ do
+  updatedline <- let newline= (runST $ Rp.computeUnboxedP $ Rp.slice (field ca) (Rp.Z Rp.:.((\(Rp.Z Rp.:.i Rp.:._) -> i-1)$Rp.extent$field ca) Rp.:.Rp.All))
+                  in Rp.computeUnboxedP $ Rp.traverse (runST $ Rp.computeUnboxedP $ Rp.slice (field ca) (Rp.Z Rp.:.((\(Rp.Z Rp.:.i Rp.:._) -> i-1)$Rp.extent$field ca) Rp.:.Rp.All)) id (cellUpdate (generation ca) newline)
   addedLine <- Rp.computeUnboxedP $ (Rp.traverse2 (field ca) updatedline (\(Rp.Z Rp.:.i Rp.:.j)-> \(Rp.Z Rp.:.j) -> (Rp.Z Rp.:.i+1 Rp.:.j))) (updateCell ca updatedline)
   pure ca{field = addedLine}
     where
@@ -40,7 +38,7 @@ neighbors _  i = [i-1,i,i+1]
 incrementGeneration :: Dim1CA -> Dim1CA
 incrementGeneration ca = ca{generation = 1 + (generation ca)}
 fieldContentUpdate :: Dim1CA -> Dim1CA
-fieldContentUpdate  ca = incrementGeneration $ reformField  $ updateAndAddLine  ca $ getUpdateLine ca 
+fieldContentUpdate  ca = incrementGeneration $ reformField  $ updateAndAddLines  ca  
 
 int2Rule :: Word8 -> [Bool]
 int2Rule i = int2nbit (fromIntegral i) 8
