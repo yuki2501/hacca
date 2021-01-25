@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f9361d4ce443e8ca3e8b0ab1cd85e9c7ef92e4e301301e98dd6fed6c6d2aeb20
+-- hash: 68a8dd0d2f640996eb6ef4dd2dd5debfd09ddf35703eabf7ae188bf5296cf928
 
 name:           hacca
 version:        0.1.0.0
@@ -27,13 +27,16 @@ source-repository head
 
 library
   exposed-modules:
-      Data.CA
+      Data.DIM1CA
+      Data.DIM2CA
+      Gloss.Render
   other-modules:
       Paths_hacca
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , gloss
     , repa
     , vector
   default-language: Haskell2010
@@ -47,6 +50,7 @@ executable hacca-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , gloss
     , hacca
     , repa
     , vector
@@ -62,6 +66,7 @@ test-suite hacca-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , gloss
     , hacca
     , repa
     , vector
