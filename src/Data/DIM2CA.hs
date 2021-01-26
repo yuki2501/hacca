@@ -46,7 +46,7 @@ updateLines ca = runST $ do
   pure ca{field = updatedlines}
     where
       cellUpdate :: Dim2CA -> (Rp.DIM2 -> Bool) -> Rp.DIM2 ->Bool
-      cellUpdate ca _ index = applyRule ca ((field ca) Rp.! index) (map (field ca Rp.!) (neighbors ca index))
+      cellUpdate ca _ index = applyRule ca ((field ca) Rp.! index) (map ((field ca Rp.!) . torusedIndex ca) (neighbors ca index))
 reformField :: Dim2CA -> Dim2CA
 reformField  = id
 incrementGeneration :: Dim2CA -> Dim2CA
