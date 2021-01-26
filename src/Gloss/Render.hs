@@ -18,5 +18,5 @@ renderArray cellColor cellSize field = let field4Render = activeCellIndex field
     cell2Picture :: (Int,Int) -> Picture
     cell2Picture (i,j) = color cellColor $ cellTranslate (i,j) $ rectangleSolid (fromIntegral cellSize) (fromIntegral cellSize)
     cellTranslate :: (Int,Int) -> Picture -> Picture
-    cellTranslate (i,j) = translate (fromIntegral ((j*cellSize)) - fromIntegral(((\(Rp.Z Rp.:._ Rp.:.j)-> j)(Rp.extent field))`div`2))(fromIntegral((((\(Rp.Z Rp.:.i Rp.:._) -> i)(Rp.extent field))`div`2)) + fromIntegral (i*cellSize))
+    cellTranslate (i,j) = translate (fromIntegral (-(j*cellSize)) - fromIntegral(((\(Rp.Z Rp.:._ Rp.:.j)-> j)(Rp.extent field))`div`2))(fromIntegral(-(((\(Rp.Z Rp.:.i Rp.:._) -> i)(Rp.extent field))`div`2)) + fromIntegral (i*cellSize))
 
