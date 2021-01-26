@@ -54,8 +54,8 @@ incrementGeneration ca = ca{generation = 1 + generation ca}
 fieldContentUpdate  :: Dim2CA -> Dim2CA
 fieldContentUpdate  = incrementGeneration . reformField . updateLines
 
-cellChangedField :: Dim2CA -> Rp.DIM2 -> IO Dim2CA 
-cellChangedField ca index = do
+cellChangedField :: Dim2CA -> Rp.DIM2 -> Dim2CA 
+cellChangedField ca index = runST $ do
   fieldContent' <- Rp.computeUnboxedP $! Rp.traverse (field ca) id $ changeCell (field ca) index
   pure ca{field = fieldContent'}
   where
