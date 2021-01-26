@@ -17,7 +17,10 @@ getHeight = (\(Rp.Z Rp.:.i Rp.:._) -> i) . Rp.extent . field
 
 torusedIndex :: Dim2CA -> Rp.DIM2 -> Rp.DIM2
 torusedIndex ca index@(Rp.Z Rp.:.i Rp.:.j)
-  | isTorused ca = (Rp.Z Rp.:.(i `mod` (getHeight ca)) Rp.:.(j `mod` (getWidth ca)))
+  | isTorused ca && i == -1 && j == -1 = (Rp.Z Rp.:. (1- getHeight ca) Rp.:.(1- getWidth ca))
+  | isTorused ca && i == -1 = (Rp.Z Rp.:.(1 - getHeight ca) Rp.:.j)
+  | isTorused ca && j == -1 = (Rp.Z Rp.:.i Rp.:.(1 - getWidth ca))
+  | isTorused ca  = (Rp.Z Rp.:.(i `mod` (getHeight ca)) Rp.:.(j `mod` (getWidth ca)))
   | otherwise = index
 
 neighbors :: Dim2CA -> Rp.DIM2 -> [Rp.DIM2]
