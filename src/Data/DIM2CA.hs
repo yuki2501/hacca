@@ -3,6 +3,7 @@ import qualified Data.Array.Repa as Rp
 import qualified Data.Vector.Unboxed as V
 import Data.List
 import Control.Monad.ST
+import Debug.Trace
 
 type Field = Rp.Array Rp.U Rp.DIM2 Bool
 data Dim2CA = Dim2CA {field::Field,rule :: Rule , isTorused :: Bool, generation :: Int}
@@ -38,7 +39,7 @@ index2Tuple :: Rp.DIM2 -> (Int,Int)
 index2Tuple (Rp.Z Rp.:. i Rp.:. j) = (i,j)
 
 applyRule :: Dim2CA -> Bool -> [Bool] -> Bool
-applyRule ca  cellStatus bools = if cellStatus then isActive (activeCellNeighbor$ rule ca) activeCellCount else isBirth (birthCellNeighbor$ rule ca) activeCellCount
+applyRule ca  cellStatus bools = trace(show(activeCellCount))$ if cellStatus then isActive (activeCellNeighbor$ rule ca) activeCellCount else isBirth (birthCellNeighbor$ rule ca) activeCellCount
   where
     isActive ::  [Int] -> Int -> Bool
     isActive ns n = n `elem` ns
