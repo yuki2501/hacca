@@ -3,7 +3,6 @@ import qualified Data.Array.Repa as Rp
 import qualified Data.Vector.Unboxed as V
 import Data.List
 import Control.Monad.ST
-import Debug.Trace
 
 type Field = Rp.Array Rp.U Rp.DIM2 Bool
 data Dim2CA = Dim2CA {field::Field,rule :: Rule , isTorused :: Bool, generation :: Int}
@@ -29,7 +28,7 @@ torusedIndex i j
 
 neighbors :: Dim2CA -> Rp.DIM2 -> [Rp.DIM2]
 neighbors ca (Rp.Z Rp.:.x Rp.:. y) = if (neighbor $  rule ca) == Moore 
-                                             then ([tuple2Index (i,j)|i<-[-1,0,1],j<-[-1,0,1]] \\ [tuple2Index (x,y)])
+                                             then ([tuple2Index (i+x,j+y)|i<-[-1,0,1],j<-[-1,0,1]] \\ [tuple2Index (x,y)])
                                              else  map (tuple2Index) [(x-1,y),(x+1,y),(x,y-1),(x,y+1)]
 
 tuple2Index :: (Int,Int) -> Rp.DIM2 
@@ -39,7 +38,7 @@ index2Tuple :: Rp.DIM2 -> (Int,Int)
 index2Tuple (Rp.Z Rp.:. i Rp.:. j) = (i,j)
 
 applyRule :: Dim2CA -> Bool -> [Bool] -> Bool
-applyRule ca  cellStatus bools = trace(show(activeCellCount))$ if cellStatus then isActive (activeCellNeighbor$ rule ca) activeCellCount else isBirth (birthCellNeighbor$ rule ca) activeCellCount
+applyRule ca  cellStatus bools = if cellStatus then isActive (activeCellNeighbor$ rule ca) activeCellCount else isBirth (birthCellNeighbor$ rule ca) activeCellCount
   where
     isActive ::  [Int] -> Int -> Bool
     isActive ns n = n `elem` ns
