@@ -14,14 +14,17 @@ getWidth :: Dim2CA -> Int
 getWidth = (\(Rp.Z Rp.:._ Rp.:.j) -> j) . Rp.extent . field
 getHeight :: Dim2CA -> Int
 getHeight = (\(Rp.Z Rp.:.i Rp.:._) -> i) . Rp.extent . field
-
-torusedIndex :: Dim2CA -> Rp.DIM2 -> Rp.DIM2
-torusedIndex ca index@(Rp.Z Rp.:.i Rp.:.j)
-  | isTorused ca && i == -1 && j == -1 = (Rp.Z Rp.:. (1- getHeight ca) Rp.:.(1- getWidth ca))
-  | isTorused ca && i == -1 = (Rp.Z Rp.:.(1 - getHeight ca) Rp.:.j)
-  | isTorused ca && j == -1 = (Rp.Z Rp.:.i Rp.:.(1 - getWidth ca))
-  | isTorused ca  = (Rp.Z Rp.:.(i `mod` (getHeight ca)) Rp.:.(j `mod` (getWidth ca)))
-  | otherwise = index
+torusedIndex :: Int -> Int -> Int
+torusedIndex i j
+  | i == -1 = j - 1 
+  | otherwise = i `mod` j
+--torusedIndex :: Dim2CA -> Rp.DIM2 -> Rp.DIM2
+--torusedIndex ca index@(Rp.Z Rp.:.i Rp.:.j)
+--  | isTorused ca && i == -1 && j == -1 = (Rp.Z Rp.:. (1- getHeight ca) Rp.:.(1- getWidth ca))
+--  | isTorused ca && i == -1 = (Rp.Z Rp.:.(1 - getHeight ca) Rp.:.j)
+--  | isTorused ca && j == -1 = (Rp.Z Rp.:.i Rp.:.(1 - getWidth ca))
+--  | isTorused ca  = (Rp.Z Rp.:.(i `mod` (getHeight ca)) Rp.:.(j `mod` (getWidth ca)))
+--  | otherwise = index
 
 neighbors :: Dim2CA -> Rp.DIM2 -> [Rp.DIM2]
 neighbors ca (Rp.Z Rp.:.x Rp.:. y) = if (neighbor $  rule ca) == Moore 
@@ -49,7 +52,7 @@ updateLines ca = runST $ do
   pure ca{field = updatedlines}
     where
       cellUpdate :: Dim2CA -> (Rp.DIM2 -> Bool) -> Rp.DIM2 ->Bool
-      cellUpdate ca _ index = applyRule ca ((field ca) Rp.! index) (map ((field ca Rp.!) . torusedIndex ca) (neighbors ca index))
+      cellUpdate ca _ index = applyRule ca ((field ca) Rp.! index) (map ((field ca Rp.!) . (\(Rp.Z Rp.:.i Rp.:.j) -> (Rp.Z Rp.:.(torusedIndex i (getHeight ca) ) Rp.:.(torusedIndex j (getWidth ca))))) (neighbors ca index))
 reformField :: Dim2CA -> Dim2CA
 reformField  = id
 incrementGeneration :: Dim2CA -> Dim2CA
