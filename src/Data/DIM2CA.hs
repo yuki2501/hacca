@@ -4,7 +4,7 @@ import qualified Data.Vector.Unboxed as V
 import Data.List
 import Control.Monad.ST
 
-type Field = Rp.Array Rp.U Rp.DIM2 Bool
+type Field = Rp.Array Rp.U Rp.DIM2 Int
 data Dim2CA = Dim2CA {field::Field,rule :: Rule , isTorused :: Bool, generation :: Int}
 data NeighborType = Neumann | Moore deriving Eq
 data Rule = Rule{neighbor :: NeighborType,birthCellNeighbor :: [Int],activeCellNeighbor :: [Int]}
@@ -37,21 +37,20 @@ tuple2Index (i,j)  = Rp.Z Rp.:.i Rp.:.j
 index2Tuple :: Rp.DIM2 -> (Int,Int)
 index2Tuple (Rp.Z Rp.:. i Rp.:. j) = (i,j)
 
-applyRule :: Dim2CA -> Bool -> [Bool] -> Bool
-applyRule ca  cellStatus bools = if cellStatus then isActive (activeCellNeighbor$ rule ca) activeCellCount else isBirth (birthCellNeighbor$ rule ca) activeCellCount
+applyRule :: Dim2CA -> Int -> [Int] -> Int
+applyRule ca  cellStatus neighbors = if cellStatus == 1 then isActive (activeCellNeighbor$ rule ca) (sum neighbors)  else isBirth (birthCellNeighbor$ rule ca) (sum neighbors)
   where
-    isActive ::  [Int] -> Int -> Bool
-    isActive ns n = n `elem` ns
-    isBirth :: [Int] -> Int -> Bool
-    isBirth ns n = n `elem` ns
-    activeCellCount = length $ filter (True ==) bools
+    isActive ::  [Int] -> Int -> Int
+    isActive ns n = if n `elem` ns then 1 else 0
+    isBirth :: [Int] -> Int -> Int
+    isBirth ns n = if n `elem` ns then 1 else 0
 
 updateLines :: Dim2CA -> Dim2CA
 updateLines ca = runST $ do
   updatedlines <- Rp.computeUnboxedP $ Rp.traverse (field ca) id (cellUpdate ca)
   pure ca{field = updatedlines}
     where
-      cellUpdate :: Dim2CA -> (Rp.DIM2 -> Bool) -> Rp.DIM2 ->Bool
+      cellUpdate :: Dim2CA -> (Rp.DIM2 -> Int) -> Rp.DIM2 ->Int
       cellUpdate ca _ index = applyRule ca ((field ca) Rp.! index) (map ((field ca Rp.!) . (\(Rp.Z Rp.:.i Rp.:.j) -> (Rp.Z Rp.:.(torusedIndex i (getHeight ca) ) Rp.:.(torusedIndex j (getWidth ca))))) (neighbors ca index))
 reformField :: Dim2CA -> Dim2CA
 reformField  = id
@@ -65,5 +64,8 @@ cellChangedField ca index = runST $ do
   fieldContent' <- Rp.computeUnboxedP $! Rp.traverse (field ca) id $ changeCell (field ca) index
   pure ca{field = fieldContent'}
   where
-    changeCell :: Field -> Rp.DIM2 -> (Rp.DIM2 -> Bool) -> Rp.DIM2 -> Bool
-    changeCell field index _ index' = if index == index' then  not $ (field) Rp.! index else (field) Rp.! (index')
+    changeCell :: Field -> Rp.DIM2 -> (Rp.DIM2 ->Int) -> Rp.DIM2 -> Int
+    changeCell field index _ index' = if index == index' then  intreverse ( (field) Rp.! index) else (field) Rp.! (index')
+    intreverse i
+      | i == 0 = 1
+      | otherwise = 0

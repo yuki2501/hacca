@@ -4,14 +4,14 @@ import qualified Data.Array.Repa as Rp
 import qualified Data.Vector.Unboxed as V
 import Control.Monad.ST
 type CellSize = Int
-activeCellIndex :: Rp.Array Rp.U Rp.DIM2 Bool -> (V.Vector (Int,Int))
+activeCellIndex :: Rp.Array Rp.U Rp.DIM2 Int -> (V.Vector (Int,Int))
 activeCellIndex field = let withIndexArray = runST $ Rp.computeUnboxedP $ Rp.traverse field id (withIndex field)
-                        in V.map snd $ V.filter fst (Rp.toUnboxed withIndexArray)
+                         in V.map snd $ V.filter ((1 ==) . fst ) (Rp.toUnboxed withIndexArray)
                          
   where
-    withIndex :: Rp.Array Rp.U Rp.DIM2 Bool -> (Rp.DIM2 -> Bool) -> Rp.DIM2 -> (Bool,(Int,Int))
+    withIndex :: Rp.Array Rp.U Rp.DIM2 Int -> (Rp.DIM2 -> Int) -> Rp.DIM2 -> (Int,(Int,Int))
     withIndex  field _ index@(Rp.Z Rp.:.i Rp.:.j) = (field Rp.! index,(i+1,j+1))
-renderArray :: Color -> CellSize -> Rp.Array Rp.U Rp.DIM2 Bool -> Picture
+renderArray :: Color -> CellSize -> Rp.Array Rp.U Rp.DIM2 Int -> Picture
 renderArray cellColor cellSize field = let field4Render = activeCellIndex field
                                        in pictures (map cell2Picture (V.toList field4Render))
   where
